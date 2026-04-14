@@ -1,0 +1,94 @@
+databaseChangeLog:
+  - property:
+      name: schema_name
+      value: allservices02_central
+
+  - property:
+      name: phone_col
+      value: phone_number
+
+  - changeSet:
+      id: 1
+      author: dbdevopsuser01
+      context: base
+      changes:
+        - sql:
+            sql: CREATE DATABASE IF NOT EXISTS ${schema_name};
+
+  - changeSet:
+      id: 2
+      author: dbdevopsuser01
+      context: base
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                tableName: user_info
+                schemaName: ${schema_name}
+      changes:
+        - createTable:
+            tableName: user_info
+            schemaName: ${schema_name}
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(100)
+
+  - changeSet:
+      id: 3
+      author: dbdevopsuser01
+      context: dev
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: user_info
+                schemaName: ${schema_name}
+                columnName: ${phone_col}
+      changes:
+        - addColumn:
+            tableName: user_info
+            schemaName: ${schema_name}
+            columns:
+              - column:
+                  name: ${phone_col}
+                  type: VARCHAR(20)
+  - changeSet:
+        id: 4
+        author: dbdevopsuser01
+        context: dev
+        preConditions:
+          - onFail: MARK_RAN
+            not:
+              - columnExists:
+                  tableName: user_info
+                  schemaName: ${schema_name}
+                  columnName: future_use01
+        changes:
+          - addColumn:
+              tableName: user_info
+              schemaName: ${schema_name}
+              columns:
+                - column:
+                    name: future_use01
+                    type: VARCHAR(20)
+  - changeSet:
+        id: add_future_use02
+        author: dbdevopsuser01
+        context: dev
+        labels: debug_support,analytics
+        changes:
+          - addColumn:
+              tableName: user_info
+              schemaName: ${schema_name}
+              columns:
+                - column:
+                    name: future_use02
+                    type: VARCHAR(20)

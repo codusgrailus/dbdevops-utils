@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+
+export DEBIAN_FRONTEND=noninteractive
+
+apt-get update -y
+apt-get install -y mysql-server
+
+sed -i 's/^bind-address\s*=\s*.*/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
+
+systemctl enable mysql
+systemctl restart mysql
+
+mysql --protocol=socket -uroot <<SQL
+CREATE USER IF NOT EXISTS '${mysql_admin_username}'@'%' IDENTIFIED WITH mysql_native_password BY '${mysql_user_password}';
+GRANT ALL PRIVILEGES ON *.* TO '${mysql_admin_username}'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+SQL

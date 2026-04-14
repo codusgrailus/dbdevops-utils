@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: jdbc-connection-tester
+  namespace: default
+spec:
+  ttlSecondsAfterFinished: 300   # auto-clean up 5 min after completion
+  backoffLimit: 0                # don't retry on failure
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: jdbc-tester
+          image: codusgrailus/jdbc-connection-tester:latest
+          imagePullPolicy: Always
+          env:
+            # sensitive values from Secret
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: jdbc-tester-secret
+                  key: DB_HOST
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jdbc-tester-secret
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jdbc-tester-secret
+                  key: DB_PASSWORD
+            # non-sensitive config inline
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_JDBC_DRIVER
+              value: "jdbc:mysql"
+            - name: NEW_DB_NAME
+              value: "y1"              # set a name to create that database, leave empty to skip
+

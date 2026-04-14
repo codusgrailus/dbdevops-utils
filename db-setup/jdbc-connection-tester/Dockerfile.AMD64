@@ -1,0 +1,20 @@
+# ---- build stage ----
+FROM --platform=linux/amd64 maven:3.9-eclipse-temurin-11 AS build
+WORKDIR /app
+COPY pom.xml .
+# download dependencies first (layer cache)
+RUN mvn -q dependency:go-offline
+COPY src ./src
+RUN mvn -q clean package
+
+# ---- runtime stage ----
+FROM --platform=linux/amd64 eclipse-temurin:11-jre-alpine
+WORKDIR /app
+COPY --from=build /app/target/jdbc-connection-tester.jar .
+COPY --from=build /app/target/libs ./libs
+
+# All config comes from environment variables at runtime:
+#   DB_HOST, DB_USER, DB_PASSWORD, DB_JDBC_DRIVER
+#   DB_PORT         (optional, default 3306)
+#   EXTRA_JDBC_ARGS (optional)
+ENTRYPOINT ["java", "-cp", "jdbc-connection-tester.jar:libs/*", "com.harness.jdbc.ConnectionTester"]
