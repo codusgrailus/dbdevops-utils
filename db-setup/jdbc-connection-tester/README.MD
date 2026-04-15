@@ -61,6 +61,12 @@ Address:        172.20.0.10:53
  
 ```
 
+#### Test connection with mysql client login
+```bash
+kubectl run mysql-client --image=mysql:8.0 --rm -it --restart=Never -- bash 
+mysql -h senthil-aurora-mysql-apr15-c001.cluster-mxqyu0yoib6p.ap-south-1.rds.amazonaws.com -u auroramysqluser -pxxxxxx
+```
+
 ### Cleanup settings
 ```bash
   kubectl delete -f k8s/job.yml
