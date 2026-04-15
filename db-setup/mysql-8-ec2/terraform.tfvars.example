@@ -1,0 +1,8 @@
+aws_region          = "ap-south-1"
+instance_name       = "mysql8-test"
+instance_type       = "t3.medium"
+mysql_admin_username = "mysqluser02"
+mysqluser02_password = "is23829ja"
+
+#
+#

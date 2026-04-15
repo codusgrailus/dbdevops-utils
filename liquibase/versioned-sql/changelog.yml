@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: 000_create_database.sql
+  - include:
+      file: 001_create_orders_table.sql
+  - include:
+      file: 002_create_order_items_table.sql
+  - include:
+      file: JIRA-2527/003_add_index_and_columns.sql
+  - include:
+      file: HOTFIX-2026-03-29/changelog.yml
+  - include:
+      file: HOTFIX-2026-04-01/changelog.yml

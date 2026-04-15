@@ -1,0 +1,4 @@
+databaseChangeLog:
+  - include:
+      file: 005_insert_more_order_items.sql
+      relativeToChangelogFile: true

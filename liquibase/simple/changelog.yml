@@ -1,0 +1,195 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: dbdevopsuser01
+      changes:
+        - sql:
+            sql: CREATE DATABASE IF NOT EXISTS allservices02_central;
+
+  - changeSet:
+      id: 2
+      author: dbdevopsuser01
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                tableName: user_info
+                schemaName: allservices02_central
+      changes:
+        - createTable:
+            tableName: user_info
+            schemaName: allservices02_central
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: username
+                  type: VARCHAR(100)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password_hash
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: full_name
+                  type: VARCHAR(255)
+              - column:
+                  name: is_active
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false                  
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  - changeSet:
+      id: 3
+      author: dbdevopsuser01
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: user_info
+                schemaName: allservices02_central
+                columnName: phone_number
+      changes:
+        - addColumn:
+            tableName: user_info
+            schemaName: allservices02_central
+            columns:
+              - column:
+                  name: phone_number
+                  type: VARCHAR(20)
+  - changeSet:
+      id: 4
+      author: dbdevopsuser01
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: user_info
+                schemaName: allservices02_central
+                columnName: phone_number2
+      changes:
+        - addColumn:
+            tableName: user_info
+            schemaName: allservices02_central
+            columns:
+              - column:
+                  name: phone_number2
+                  type: VARCHAR(20)
+  - changeSet:
+      id: 5
+      author: dbdevopsuser01
+      changes:
+        - addColumn:
+            tableName: user_info
+            schemaName: allservices02_central
+            columns:
+              - column:
+                  name: phone_number3
+                  type: VARCHAR(20)
+  - changeSet:
+      id: 6
+      author: dbdevopsuser01
+      changes:
+        - insert:
+            tableName: user_info
+            schemaName: allservices02_central
+            columns:
+              - column:
+                  name: username
+                  value: jdoe
+              - column:
+                  name: email
+                  value: jdoe@example.com
+              - column:
+                  name: password_hash
+                  value: "$2a$10$abcdefghijklmnopqrstuv"
+              - column:
+                  name: full_name
+                  value: John Doe
+              - column:
+                  name: is_active
+                  valueBoolean: true
+              - column:
+                  name: phone_number
+                  value: "+1-555-0101"
+        - insert:
+            tableName: user_info
+            schemaName: allservices02_central
+            columns:
+              - column:
+                  name: username
+                  value: asmith
+              - column:
+                  name: email
+                  value: asmith@example.com
+              - column:
+                  name: password_hash
+                  value: "$2a$10$xyzabcdefghijklmnopqrs"
+              - column:
+                  name: full_name
+                  value: Alice Smith
+              - column:
+                  name: is_active
+                  valueBoolean: true
+              - column:
+                  name: phone_number
+                  value: "+1-555-0202"
+        - insert:
+            tableName: user_info
+            schemaName: allservices02_central
+            columns:
+              - column:
+                  name: username
+                  value: bwilson
+              - column:
+                  name: email
+                  value: bwilson@example.com
+              - column:
+                  name: password_hash
+                  value: "$2a$10$mnopqrstuvwxyzabcdefgh"
+              - column:
+                  name: full_name
+                  value: Bob Wilson
+              - column:
+                  name: is_active
+                  valueBoolean: false
+              - column:
+                  name: phone_number
+                  value: "+1-555-0303"
+  - changeSet:
+      id: 7
+      author: dbdevopsuser01
+      changes:
+        - sql:
+            sql: SELECT * FROM allservices02_central.user_info;
+#  - changeSet:
+#      id: fail-test-1
+#      author: senthil
+#      changes:
+#        - sql:
+#            sql: ALTER TABLE table_that_does_not_exist ADD COLUMN x VARCHAR(20);
+

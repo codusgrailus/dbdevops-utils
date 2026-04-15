@@ -1,0 +1,13 @@
+cluster_name         = "senthil-aurora-mysql-apr14-c003"
+publicly_accessible  = false
+aws_region           = "ap-south-1"
+vpc_id               = "vpc-034bac1b1863b3def" # should be same as the k8s cluster you will use
+
+db_name              = "mydb"
+db_admin_username    = "auroramysqladmin"
+db_admin_password    = "xxxxxxx"
+
+### leave below as is
+instance_class       = "db.t3.medium"
+instance_count       = 1
+mysql_engine_version = "8.0.mysql_aurora.3.12.0"
