@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - include:
+      file: 001_add_discount_table.sql
+      relativeToChangelogFile: true
+  - include:
+      file: 002_add_discount_column_to_orders.sql
+      relativeToChangelogFile: true
+  - include:
+      file: 003_bad_change_drop_status_default.sql
+      relativeToChangelogFile: true
