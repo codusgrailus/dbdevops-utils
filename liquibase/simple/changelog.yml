@@ -4,7 +4,7 @@ databaseChangeLog:
       author: dbdevopsuser01
       changes:
         - sql:
-            sql: CREATE DATABASE IF NOT EXISTS allservices02_central;
+            sql: CREATE DATABASE IF NOT EXISTS demo_simple;
 
   - changeSet:
       id: 2
@@ -14,11 +14,11 @@ databaseChangeLog:
           not:
             - tableExists:
                 tableName: user_info
-                schemaName: allservices02_central
+                schemaName: demo_simple
       changes:
         - createTable:
             tableName: user_info
-            schemaName: allservices02_central
+            schemaName: demo_simple
             columns:
               - column:
                   name: id
@@ -71,12 +71,12 @@ databaseChangeLog:
           not:
             - columnExists:
                 tableName: user_info
-                schemaName: allservices02_central
+                schemaName: demo_simple
                 columnName: phone_number
       changes:
         - addColumn:
             tableName: user_info
-            schemaName: allservices02_central
+            schemaName: demo_simple
             columns:
               - column:
                   name: phone_number
@@ -89,12 +89,12 @@ databaseChangeLog:
           not:
             - columnExists:
                 tableName: user_info
-                schemaName: allservices02_central
+                schemaName: demo_simple
                 columnName: phone_number2
       changes:
         - addColumn:
             tableName: user_info
-            schemaName: allservices02_central
+            schemaName: demo_simple
             columns:
               - column:
                   name: phone_number2
@@ -105,7 +105,7 @@ databaseChangeLog:
       changes:
         - addColumn:
             tableName: user_info
-            schemaName: allservices02_central
+            schemaName: demo_simple
             columns:
               - column:
                   name: phone_number3
@@ -116,7 +116,7 @@ databaseChangeLog:
       changes:
         - insert:
             tableName: user_info
-            schemaName: allservices02_central
+            schemaName: demo_simple
             columns:
               - column:
                   name: username
@@ -138,7 +138,7 @@ databaseChangeLog:
                   value: "+1-555-0101"
         - insert:
             tableName: user_info
-            schemaName: allservices02_central
+            schemaName: demo_simple
             columns:
               - column:
                   name: username
@@ -160,7 +160,7 @@ databaseChangeLog:
                   value: "+1-555-0202"
         - insert:
             tableName: user_info
-            schemaName: allservices02_central
+            schemaName: demo_simple
             columns:
               - column:
                   name: username
@@ -185,7 +185,7 @@ databaseChangeLog:
       author: dbdevopsuser01
       changes:
         - sql:
-            sql: SELECT * FROM allservices02_central.user_info;
+            sql: SELECT * FROM demo_simple.user_info;
 #  - changeSet:
 #      id: fail-test-1
 #      author: senthil

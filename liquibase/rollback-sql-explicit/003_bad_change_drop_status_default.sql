@@ -7,6 +7,6 @@
 
 --changeset dbdevopsuser01:rollback-demo-3
 --comment: [BAD CHANGE] Remove default and NOT NULL from orders.status — breaks app logic
-ALTER TABLE allservices02_central.orders
+ALTER TABLE demo_rollback_sql.orders
     MODIFY COLUMN status VARCHAR(50) NULL DEFAULT NULL;
---rollback ALTER TABLE allservices02_central.orders MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'PENDING';
+--rollback ALTER TABLE demo_rollback_sql.orders MODIFY COLUMN status VARCHAR(50) NOT NULL DEFAULT 'PENDING';

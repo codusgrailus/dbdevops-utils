@@ -2,7 +2,7 @@
 
 --changeset dbdevopsuser01:rollback-demo-1
 --comment: Create discount_codes table
-CREATE TABLE IF NOT EXISTS allservices02_central.discount_codes (
+CREATE TABLE IF NOT EXISTS demo_rollback_sql.discount_codes (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(50) NOT NULL UNIQUE,
     description VARCHAR(255),
@@ -11,4 +11,4 @@ CREATE TABLE IF NOT EXISTS allservices02_central.discount_codes (
     valid_until DATE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
---rollback DROP TABLE IF EXISTS allservices02_central.discount_codes;
+--rollback DROP TABLE IF EXISTS demo_rollback_sql.discount_codes;

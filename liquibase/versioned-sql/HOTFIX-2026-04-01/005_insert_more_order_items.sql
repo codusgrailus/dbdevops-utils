@@ -2,7 +2,7 @@
 
 --changeset dbdevopsuser01:HOTFIX-2026-04-01
 --comment: Insert additional order items as part of HOTFIX-2026-04-01
-INSERT INTO allservices02_central.order_items (order_id, product_name, quantity, unit_price)
+INSERT INTO demo_versioned_sql.order_items (order_id, product_name, quantity, unit_price)
 VALUES
     (1, 'Bluetooth Speaker', 1, 45.99),
     (1, 'HDMI Cable', 3, 12.50),
