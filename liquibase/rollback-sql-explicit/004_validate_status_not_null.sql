@@ -1,12 +1,10 @@
 --liquibase formatted sql
 
 -- THIS CHANGESET INTENTIONALLY FAILS:
--- Checks that the status column still has NOT NULL enforced by attempting an insert
--- with status explicitly set to NULL. If 003 was applied (NULL allowed), the insert
--- succeeds but a follow-up constraint check fails. If schema is healthy, insert fails immediately.
--- Either way this acts as a forced failure to demonstrate pipeline rollback.
+-- Simulates a post-deploy smoke test catching the bad change in 003.
+-- References a non-existent table to force a hard SQL error and trigger pipeline rollback.
 
 --changeset dbdevopsuser01:rollback-demo-4
 --comment: [SMOKE TEST] Force failure to trigger rollback — simulates post-deploy validation catching 003's bad change
-INSERT INTO demo_rollback_sql.orders (user_id, total_amount, status) VALUES (99999, 0.00, NULL);
---rollback DELETE FROM demo_rollback_sql.orders WHERE user_id = 99999;
+SELECT * FROM demo_rollback_sql.smoke_test_intentional_failure;
+--rollback SELECT 1;
