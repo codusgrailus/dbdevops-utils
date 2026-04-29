@@ -7,10 +7,10 @@ databaseChangeLog:
       comment: Create database
       changes:
         - sql:
-            sql: CREATE DATABASE IF NOT EXISTS demo_rollback_yaml;
+            sql: CREATE DATABASE IF NOT EXISTS demo_rollback_yaml_implicit;
       rollback:
         - sql:
-            sql: DROP DATABASE IF EXISTS demo_rollback_yaml;
+            sql: DROP DATABASE IF EXISTS demo_rollback_yaml_implicit;
 
   - changeSet:
       id: rollback-yaml-demo-0b
@@ -19,7 +19,7 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: orders
-            schemaName: demo_rollback_yaml
+            schemaName: demo_rollback_yaml_implicit
             columns:
               - column:
                   name: id
@@ -70,7 +70,7 @@ databaseChangeLog:
       changes:
         - createTable:
             tableName: discount_codes
-            schemaName: demo_rollback_yaml
+            schemaName: demo_rollback_yaml_implicit
             columns:
               - column:
                   name: id
@@ -119,7 +119,7 @@ databaseChangeLog:
       changes:
         - addColumn:
             tableName: orders
-            schemaName: demo_rollback_yaml
+            schemaName: demo_rollback_yaml_implicit
             columns:
               - column:
                   name: discount_code_id
@@ -142,12 +142,12 @@ databaseChangeLog:
       changes:
         - modifyDataType:
             tableName: orders
-            schemaName: demo_rollback_yaml
+            schemaName: demo_rollback_yaml_implicit
             columnName: status
             newDataType: VARCHAR(50)
       rollback:
         - modifyDataType:
             tableName: orders
-            schemaName: demo_rollback_yaml
+            schemaName: demo_rollback_yaml_implicit
             columnName: status
             newDataType: VARCHAR(50) NOT NULL DEFAULT 'PENDING'
