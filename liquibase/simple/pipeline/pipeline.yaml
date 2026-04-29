@@ -1,0 +1,35 @@
+pipeline:
+  name: apr23-simple-dev2
+  identifier: apr23simpledev2
+  projectIdentifier: senthilproj01
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: s2
+        identifier: s2
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - stepGroup:
+                  name: stepgroup_fgz
+                  identifier: stepgroup_fgz
+                  steps:
+                    - step:
+                        type: DBSchemaApply
+                        name: DBSchemaApply_1
+                        identifier: DBSchemaApply_1
+                        spec:
+                          connectorRef: account.harnessImage
+                          migrationType: Liquibase
+                          dbSchema: apr23simple
+                          dbInstance: dbinst01
+                          tag: v1.0.0
+                        timeout: 10m
+                  stepGroupInfra:
+                    type: KubernetesDirect
+                    spec:
+                      connectorRef: <+input>
+        tags: {}

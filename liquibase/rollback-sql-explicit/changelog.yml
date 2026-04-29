@@ -11,3 +11,6 @@ databaseChangeLog:
   - include:
       file: 003_bad_change_drop_status_default.sql
       relativeToChangelogFile: true
+  - include:
+      file: 004_validate_status_not_null.sql
+      relativeToChangelogFile: true
