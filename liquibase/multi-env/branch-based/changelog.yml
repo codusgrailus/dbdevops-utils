@@ -1,0 +1,94 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 1
+      author: dbdevopsuser01
+      changes:
+        - sql:
+            sql: CREATE DATABASE IF NOT EXISTS appdb;
+
+  - changeSet:
+      id: 2
+      author: dbdevopsuser01
+      changes:
+        - createTable:
+            tableName: orders
+            schemaName: appdb
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: customer_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total
+                  type: DECIMAL(10,2)
+                  defaultValueNumeric: 0.00
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 3
+      author: dbdevopsuser01
+      changes:
+        - addColumn:
+            tableName: orders
+            schemaName: appdb
+            columns:
+              - column:
+                  name: notes
+                  type: VARCHAR(255)
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+  - changeSet:
+      id: 4
+      author: dbdevopsuser01
+      changes:
+        - insert:
+            tableName: orders
+            schemaName: appdb
+            columns:
+              - column:
+                  name: customer_id
+                  valueNumeric: 1001
+              - column:
+                  name: status
+                  value: SHIPPED
+              - column:
+                  name: total
+                  valueNumeric: 149.99
+        - insert:
+            tableName: orders
+            schemaName: appdb
+            columns:
+              - column:
+                  name: customer_id
+                  valueNumeric: 1002
+              - column:
+                  name: status
+                  value: PENDING
+              - column:
+                  name: total
+                  valueNumeric: 89.50
