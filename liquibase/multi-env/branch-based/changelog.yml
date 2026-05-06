@@ -61,6 +61,10 @@ databaseChangeLog:
                   name: updated_at
                   type: TIMESTAMP
                   defaultValueComputed: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+              - column:
+                  name: dev_flag
+                  type: TINYINT
+                  defaultValueNumeric: 1
 
   - changeSet:
       id: 4
@@ -72,23 +76,46 @@ databaseChangeLog:
             columns:
               - column:
                   name: customer_id
-                  valueNumeric: 1001
+                  valueNumeric: 9001
               - column:
                   name: status
-                  value: SHIPPED
+                  value: PENDING
               - column:
                   name: total
-                  valueNumeric: 149.99
+                  valueNumeric: 1.00
         - insert:
             tableName: orders
             schemaName: appdb
             columns:
               - column:
                   name: customer_id
-                  valueNumeric: 1002
+                  valueNumeric: 9002
               - column:
                   name: status
                   value: PENDING
               - column:
                   name: total
-                  valueNumeric: 89.50
+                  valueNumeric: 2.00
+
+  - changeSet:
+      id: 5
+      author: dbdevopsuser01
+      changes:
+        - createTable:
+            tableName: dev_debug_log
+            schemaName: appdb
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: message
+                  type: VARCHAR(500)
+              - column:
+                  name: logged_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
