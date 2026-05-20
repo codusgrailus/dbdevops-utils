@@ -1,0 +1,100 @@
+databaseChangeLog:
+- changeSet:
+    id: 1779288795452-1
+    author: liquibase (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+              unique: true
+            name: sku
+            type: VARCHAR(100)
+        - column:
+            constraints:
+              nullable: false
+            name: name
+            type: VARCHAR(255)
+        - column:
+            name: category
+            type: VARCHAR(100)
+        - column:
+            constraints:
+              nullable: false
+            defaultValueNumeric: 0.00
+            name: unit_price
+            type: DECIMAL(10, 2)
+        - column:
+            constraints:
+              nullable: false
+            defaultValueNumeric: 0
+            name: stock_qty
+            type: INT
+        - column:
+            constraints:
+              nullable: false
+            defaultValueNumeric: 1
+            name: is_active
+            type: BIT(1)
+        - column:
+            constraints:
+              nullable: false
+            defaultValueComputed: CURRENT_TIMESTAMP
+            name: created_at
+            type: TIMESTAMP(0)
+        - column:
+            constraints:
+              nullable: false
+            defaultValueComputed: CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP
+            name: updated_at
+            type: TIMESTAMP(0)
+        tableName: product_catalog
+- changeSet:
+    id: 1779288795452-2
+    author: liquibase (generated)
+    changes:
+    - createTable:
+        columns:
+        - column:
+            autoIncrement: true
+            constraints:
+              nullable: false
+              primaryKey: true
+            name: id
+            type: BIGINT
+        - column:
+            constraints:
+              nullable: false
+              unique: true
+            name: code
+            type: VARCHAR(50)
+        - column:
+            constraints:
+              nullable: false
+            name: display_name
+            type: VARCHAR(255)
+        - column:
+            name: city
+            type: VARCHAR(100)
+        - column:
+            constraints:
+              nullable: false
+            defaultValue: US
+            name: country
+            type: VARCHAR(100)
+        - column:
+            constraints:
+              nullable: false
+            defaultValueComputed: CURRENT_TIMESTAMP
+            name: created_at
+            type: TIMESTAMP(0)
+        tableName: warehouse_location
+
