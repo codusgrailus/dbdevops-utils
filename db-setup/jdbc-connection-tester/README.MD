@@ -61,6 +61,22 @@ Address:        172.20.0.10:53
  
 ```
 
+#### Check the VPC Id of the k8s cluster and aurora cluster
+```bash
+aws eks describe-cluster \
+  --name senthilk8sapr15c002-eks \
+  --region ap-south-1 \
+  --query 'cluster.resourcesVpcConfig.vpcId' \
+  --output text
+
+aws rds describe-db-subnet-groups \
+  --db-subnet-group-name senthil-aurora-mysql-apr15-c001-subnet-group \
+  --region ap-south-1 \
+  --query 'DBSubnetGroups[0].VpcId' \
+  --output text
+
+```
+
 #### Test connection with mysql client login
 ```bash
 kubectl run mysql-client --image=mysql:8.0 --rm -it --restart=Never -- bash 

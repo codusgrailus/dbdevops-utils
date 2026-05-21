@@ -1,7 +1,7 @@
 databaseChangeLog:
   - property:
       name: schema_name
-      value: allservices02_central
+      value: demo_ctx_props
 
   - property:
       name: phone_col
