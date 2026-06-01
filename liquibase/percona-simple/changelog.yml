@@ -1,0 +1,296 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: dbdevopsuser01
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                tableName: products
+      changes:
+        - createTable:
+            tableName: products
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: price
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: stock_quantity
+                  type: INT
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_available
+                  type: BOOLEAN
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+  - changeSet:
+      id: 2
+      author: dbdevopsuser01
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - tableExists:
+                tableName: orders
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: product_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: customer_name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: customer_email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: INT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: total_amount
+                  type: DECIMAL(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: VARCHAR(50)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: order_date
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+
+  - changeSet:
+      id: 3
+      author: dbdevopsuser01
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: products
+                columnName: sku
+      changes:
+        - addColumn:
+            tableName: products
+            columns:
+              - column:
+                  name: sku
+                  type: VARCHAR(100)
+
+  - changeSet:
+      id: 4
+      author: dbdevopsuser01
+      preConditions:
+        - onFail: MARK_RAN
+          not:
+            - columnExists:
+                tableName: orders
+                columnName: shipping_address
+      changes:
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: shipping_address
+                  type: VARCHAR(500)
+
+  - changeSet:
+      id: 5
+      author: dbdevopsuser01
+      changes:
+        - insert:
+            tableName: products
+            columns:
+              - column:
+                  name: name
+                  value: Laptop Pro 15
+              - column:
+                  name: description
+                  value: High-performance 15-inch laptop
+              - column:
+                  name: price
+                  valueNumeric: 1299.99
+              - column:
+                  name: stock_quantity
+                  valueNumeric: 50
+              - column:
+                  name: is_available
+                  valueBoolean: true
+              - column:
+                  name: sku
+                  value: LAP-PRO-15
+        - insert:
+            tableName: products
+            columns:
+              - column:
+                  name: name
+                  value: Wireless Mouse X200
+              - column:
+                  name: description
+                  value: Ergonomic wireless mouse with 2.4GHz connectivity
+              - column:
+                  name: price
+                  valueNumeric: 39.99
+              - column:
+                  name: stock_quantity
+                  valueNumeric: 200
+              - column:
+                  name: is_available
+                  valueBoolean: true
+              - column:
+                  name: sku
+                  value: MOU-WL-X200
+        - insert:
+            tableName: products
+            columns:
+              - column:
+                  name: name
+                  value: Mechanical Keyboard TKL
+              - column:
+                  name: description
+                  value: Tenkeyless mechanical keyboard with RGB backlight
+              - column:
+                  name: price
+                  valueNumeric: 89.99
+              - column:
+                  name: stock_quantity
+                  valueNumeric: 120
+              - column:
+                  name: is_available
+                  valueBoolean: true
+              - column:
+                  name: sku
+                  value: KEY-MECH-TKL
+
+  - changeSet:
+      id: 6
+      author: dbdevopsuser01
+      changes:
+        - insert:
+            tableName: orders
+            columns:
+              - column:
+                  name: product_id
+                  valueNumeric: 1
+              - column:
+                  name: customer_name
+                  value: John Doe
+              - column:
+                  name: customer_email
+                  value: jdoe@example.com
+              - column:
+                  name: quantity
+                  valueNumeric: 1
+              - column:
+                  name: total_amount
+                  valueNumeric: 1299.99
+              - column:
+                  name: status
+                  value: CONFIRMED
+              - column:
+                  name: shipping_address
+                  value: 123 Main St, Springfield, IL 62701
+        - insert:
+            tableName: orders
+            columns:
+              - column:
+                  name: product_id
+                  valueNumeric: 2
+              - column:
+                  name: customer_name
+                  value: Alice Smith
+              - column:
+                  name: customer_email
+                  value: asmith@example.com
+              - column:
+                  name: quantity
+                  valueNumeric: 3
+              - column:
+                  name: total_amount
+                  valueNumeric: 119.97
+              - column:
+                  name: status
+                  value: PENDING
+              - column:
+                  name: shipping_address
+                  value: 456 Oak Ave, Chicago, IL 60601
+        - insert:
+            tableName: orders
+            columns:
+              - column:
+                  name: product_id
+                  valueNumeric: 3
+              - column:
+                  name: customer_name
+                  value: Bob Wilson
+              - column:
+                  name: customer_email
+                  value: bwilson@example.com
+              - column:
+                  name: quantity
+                  valueNumeric: 2
+              - column:
+                  name: total_amount
+                  valueNumeric: 179.98
+              - column:
+                  name: status
+                  value: SHIPPED
+              - column:
+                  name: shipping_address
+                  value: 789 Pine Rd, Evanston, IL 60201
