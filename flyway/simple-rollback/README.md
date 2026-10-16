@@ -35,16 +35,16 @@ V5 is a controlled fault. It fails migration only if a `rollback_trigger` table 
 **To trigger a failure on next migrate:**
 
 ```sql
-CREATE TABLE allservices02_central.rollback_trigger (id INT);
+CREATE TABLE y1.rollback_trigger (id INT);
 ```
 
 **To disable the fault (V5 will pass silently):**
 
 ```sql
-DROP TABLE IF EXISTS allservices02_central.rollback_trigger;
+DROP TABLE IF EXISTS y1.rollback_trigger;
 ```
 
-The table must be created in `allservices02_central` (the database created by V1), not in the Flyway-connected schema.
+The table must be created in `y1` (the Flyway-connected schema).
 
 ---
 
