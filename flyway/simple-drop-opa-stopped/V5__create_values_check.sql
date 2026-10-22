@@ -1,0 +1,11 @@
+CREATE DATABASE IF NOT EXISTS values_check;
+
+CREATE TABLE IF NOT EXISTS values_check.values_check_table (
+    id          BIGINT        NOT NULL AUTO_INCREMENT,
+    check_key   VARCHAR(255)  NOT NULL UNIQUE,
+    check_value TEXT,
+    is_active   BOOLEAN       NOT NULL DEFAULT TRUE,
+    created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+);
