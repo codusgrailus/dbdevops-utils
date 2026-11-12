@@ -1,0 +1,89 @@
+pipeline:
+  name: nov12-dgt-matrix-test01
+  identifier: nov12dgtmatrixtest01
+  projectIdentifier: senthilproj01
+  orgIdentifier: default
+  tags: {}
+  stages:
+    - stage:
+        name: sre-dba-apply-stage
+        identifier: sredbaapplystage
+        description: ""
+        type: Custom
+        spec:
+          execution:
+            steps:
+              - stepGroup:
+                  name: stepgroup_vic
+                  identifier: stepgroup_vic
+                  steps:
+                    - step:
+                        type: DBSchemaApply
+                        name: sre-dba-apply-stage-applystep-01
+                        identifier: sredbaapplystageapplystep01
+                        spec:
+                          connectorRef: account.harnessImage
+                          migrationType: Flyway
+                          dbSchema: <+pipeline.variables.dbSchema>
+                          dbInstance: <+matrix.dbInstance>
+                        timeout: 10m
+                    - step:
+                        type: Run
+                        name: Run_print_apply_status
+                        identifier: Run_1
+                        spec:
+                          connectorRef: account.harnessImage
+                          image: alpine:latest
+                          shell: Sh
+                          command: |-
+                            echo "DB instance: <+matrix.dbInstance>"
+                            echo "Matrix postfix: <+strategy.identifierPostFix>"
+                            echo "Apply status: <+execution.steps.stepgroup_vic<+strategy.identifierPostFix>.steps.sredbaapplystageapplystep01.status>"
+                            echo "Pre-start tag: <+execution.steps.stepgroup_vic<+strategy.identifierPostFix>.steps.sredbaapplystageapplystep01.output.preStartTag>"
+                        when:
+                          stageStatus: All
+                    - step:
+                        type: DBSchemaRollback
+                        name: sre-dba-apply-stage-Rollback-01
+                        identifier: sredbaapplystageRollback01
+                        spec:
+                          connectorRef: account.harnessImage
+                          migrationType: Flyway
+                          dbSchema: <+pipeline.variables.dbSchema>
+                          dbInstance: <+matrix.dbInstance>
+                          tag: <+execution.steps.stepgroup_vic<+strategy.identifierPostFix>.steps.sredbaapplystageapplystep01.output.preStartTag>
+                        timeout: 10m
+                        when:
+                          stageStatus: All
+                          condition: <+execution.steps.stepgroup_vic<+strategy.identifierPostFix>.steps.sredbaapplystageapplystep01.status> == "FAILED"
+                  stepGroupInfra:
+                    type: KubernetesDirect
+                    spec:
+                      connectorRef: <+pipeline.variables.k8sConnectorRef>
+                  strategy:
+                    matrix:
+                      maxConcurrency: <+pipeline.variables.maxMatrixConcurrency>
+                      dbInstance: <+pipeline.variables.databaseInstanceList.split(",")>
+                    onFailure: RunAll
+        tags: {}
+  variables:
+    - name: dbSchema
+      type: String
+      description: Id for dbSchema
+      required: true
+      value: <+input>
+    - name: k8sConnectorRef
+      type: String
+      description: Kubernetes connector
+      required: true
+      value: <+input>
+    - name: databaseInstanceList
+      type: String
+      description: Comma-separated DB instance identifiers
+      required: true
+      value: <+input>
+    - name: maxMatrixConcurrency
+      type: Number
+      description: Maximum concurrent matrix iterations
+      required: true
+      value: 2
