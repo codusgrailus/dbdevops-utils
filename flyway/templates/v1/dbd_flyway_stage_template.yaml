@@ -1,0 +1,18 @@
+template:
+  name: dbd_flyway_stage_template
+  identifier: dbd_flyway_stage_template
+  versionLabel: v1
+  type: Stage
+  orgIdentifier: default
+  tags: {}
+  spec:
+    type: Custom
+    spec:
+      execution:
+        steps:
+          - stepGroup:
+              name: stepgroup_vic
+              identifier: stepgroup_vic
+              template:
+                templateRef: org.dbd_apply_rollback_stepgroup_template
+                versionLabel: v1

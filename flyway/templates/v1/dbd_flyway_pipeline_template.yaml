@@ -1,0 +1,36 @@
+template:
+  name: dbd_flyway_pipeline_template
+  identifier: dbd_flyway_pipeline_template
+  versionLabel: v1
+  type: Pipeline
+  orgIdentifier: default
+  tags: {}
+  spec:
+    stages:
+      - stage:
+          name: sre-dba-apply-stage
+          identifier: sredbaapplystage
+          template:
+            templateRef: org.dbd_flyway_stage_template
+            versionLabel: v1
+    variables:
+      - name: dbSchema
+        type: String
+        description: Id for dbSchema
+        required: true
+        value: <+input>
+      - name: k8sConnectorRef
+        type: String
+        description: Kubernetes connector
+        required: true
+        value: <+input>
+      - name: databaseInstanceList
+        type: String
+        description: Comma-separated DB instance identifiers
+        required: true
+        value: <+input>
+      - name: maxMatrixConcurrency
+        type: Number
+        description: Maximum concurrent matrix iterations
+        required: true
+        value: 2

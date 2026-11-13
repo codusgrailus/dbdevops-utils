@@ -1,0 +1,20 @@
+pipeline:
+  name: team-a-flyway-dbd
+  identifier: teamaflywaydbd
+  tags: {}
+  template:
+    templateRef: org.dbd_flyway_pipeline_template
+    versionLabel: v1
+    templateInputs:
+      variables:
+        - name: dbSchema
+          type: String
+          value: <+input>
+        - name: k8sConnectorRef
+          type: String
+          value: <+input>
+        - name: databaseInstanceList
+          type: String
+          value: <+input>
+  projectIdentifier: senthilproj01
+  orgIdentifier: default

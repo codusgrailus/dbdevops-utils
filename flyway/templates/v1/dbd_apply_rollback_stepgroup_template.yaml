@@ -1,0 +1,58 @@
+template:
+  name: dbd_apply_rollback_stepgroup_template
+  identifier: dbd_apply_rollback_stepgroup_template
+  versionLabel: v1
+  type: StepGroup
+  orgIdentifier: default
+  tags: {}
+  spec:
+    stageType: Custom
+    steps:
+      - step:
+          type: DBSchemaApply
+          name: sre-dba-apply-stage-applystep-01
+          identifier: sredbaapplystageapplystep01
+          spec:
+            connectorRef: account.harnessImage
+            migrationType: Flyway
+            dbSchema: <+pipeline.variables.dbSchema>
+            dbInstance: <+matrix.dbInstance>
+          timeout: 10m
+      - step:
+          type: Run
+          name: Run_print_apply_status
+          identifier: Run_1
+          spec:
+            connectorRef: account.harnessImage
+            image: alpine:latest
+            shell: Sh
+            command: |-
+              echo "DB instance: <+matrix.dbInstance>"
+              echo "Matrix postfix: <+strategy.identifierPostFix>"
+              echo "Apply status: <+execution.steps.stepgroup_vic<+strategy.identifierPostFix>.steps.sredbaapplystageapplystep01.status>"
+              echo "Pre-start tag: <+execution.steps.stepgroup_vic<+strategy.identifierPostFix>.steps.sredbaapplystageapplystep01.output.preStartTag>"
+          when:
+            stageStatus: All
+      - step:
+          type: DBSchemaRollback
+          name: sre-dba-apply-stage-Rollback-01
+          identifier: sredbaapplystageRollback01
+          spec:
+            connectorRef: account.harnessImage
+            migrationType: Flyway
+            dbSchema: <+pipeline.variables.dbSchema>
+            dbInstance: <+matrix.dbInstance>
+            tag: <+execution.steps.stepgroup_vic<+strategy.identifierPostFix>.steps.sredbaapplystageapplystep01.output.preStartTag>
+          timeout: 10m
+          when:
+            stageStatus: All
+            condition: <+execution.steps.stepgroup_vic<+strategy.identifierPostFix>.steps.sredbaapplystageapplystep01.status> == "FAILED"
+    stepGroupInfra:
+      type: KubernetesDirect
+      spec:
+        connectorRef: <+pipeline.variables.k8sConnectorRef>
+    strategy:
+      matrix:
+        maxConcurrency: <+pipeline.variables.maxMatrixConcurrency>
+        dbInstance: <+pipeline.variables.databaseInstanceList.split(",")>
+      onFailure: RunAll
