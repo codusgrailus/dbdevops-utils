@@ -1,0 +1,30 @@
+template:
+  name: flyway_first_time_stage_template
+  identifier: flyway_first_time_stage_template
+  versionLabel: v1
+  type: Stage
+  projectIdentifier: dbdproj01
+  orgIdentifier: senthilorg01
+  tags: {}
+  spec:
+    type: Custom
+    spec:
+      execution:
+        steps:
+          - stepGroup:
+              name: Flyway First Time Setup
+              identifier: stepgroup_flyway
+              template:
+                templateRef: flyway_first_time_stepgroup_template
+                versionLabel: v1
+              stepGroupInfra:
+                type: KubernetesDirect
+                spec:
+                  connectorRef: <+pipeline.variables.kubernetesConnectorRef>
+                  sharedPaths:
+                    - /harness
+              strategy:
+                matrix:
+                  maxConcurrency: <+pipeline.variables.maxMatrixConcurrency>
+                  dbInstance: <+pipeline.variables.databaseInstanceList.split(",")>
+                onFailure: RunAll

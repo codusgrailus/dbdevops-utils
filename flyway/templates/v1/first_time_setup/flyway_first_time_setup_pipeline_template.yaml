@@ -1,0 +1,70 @@
+template:
+  name: flyway_first_time_setup_pipeline_template
+  identifier: flyway_first_time_setup_pipeline_template
+  versionLabel: v1
+  type: Pipeline
+  projectIdentifier: dbdproj01
+  orgIdentifier: senthilorg01
+  tags: {}
+  spec:
+    name: flyway_first_time_pipeline
+    identifier: flyway_first_time_pipeline
+    projectIdentifier: dbdproj01
+    orgIdentifier: senthilorg01
+    tags: {}
+    stages:
+      - stage:
+          name: Flyway First Time Setup
+          identifier: flyway_first_time_setup
+          template:
+            templateRef: flyway_first_time_stage_template
+            versionLabel: v1
+    variables:
+      - name: dbSchema
+        type: String
+        required: true
+        value: <+input>
+      - name: databaseInstanceList
+        type: String
+        required: true
+        value: <+input>
+      - name: maxMatrixConcurrency
+        type: Number
+        required: true
+        value: <+input>
+      - name: kubernetesConnectorRef
+        type: String
+        required: true
+        value: <+input>
+      - name: dockerImageConnectorRef
+        type: String
+        required: true
+        value: <+input>
+      - name: dockerImage
+        type: String
+        required: true
+        value: <+input>
+      - name: dbHost
+        type: String
+        required: true
+        value: <+input>
+      - name: dbPort
+        type: String
+        required: true
+        value: <+input>
+      - name: dbUser
+        type: String
+        required: true
+        value: <+input>
+      - name: dbPassword
+        type: Secret
+        required: true
+        value: <+input>
+      - name: baselineVersion
+        type: String
+        required: true
+        value: <+input>
+      - name: flywayHistoryTable
+        type: String
+        required: true
+        value: <+input>

@@ -1,0 +1,129 @@
+template:
+  name: flyway_first_time_stepgroup_template
+  identifier: flyway_first_time_stepgroup_template
+  versionLabel: v1
+  type: StepGroup
+  projectIdentifier: dbdproj01
+  orgIdentifier: senthilorg01
+  tags: {}
+  spec:
+    stageType: Custom
+    steps:
+      - step:
+          type: Run
+          name: CheckMatrixIterVars
+          identifier: CheckMatrixIterVars
+          spec:
+            connectorRef: <+pipeline.variables.dockerImageConnectorRef>
+            image: <+pipeline.variables.dockerImage>
+            shell: Sh
+            command: |-
+              echo "DB instance: <+matrix.dbInstance>"
+              echo "Matrix postfix: <+strategy.identifierPostFix>"
+      - step:
+          type: Run
+          name: CheckFlywayTables
+          identifier: CheckFlywayTables
+          spec:
+            connectorRef: <+pipeline.variables.dockerImageConnectorRef>
+            image: <+pipeline.variables.dockerImage>
+            shell: Sh
+            command: |-
+              set -eu
+              mkdir -p /harness
+              case "$HISTORY_TABLE" in *[!a-zA-Z0-9_]*|'') echo "Invalid history table identifier"; exit 1;; esac
+              mariadb -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USER" -D "$DB_NAME" --batch --skip-column-names -e "SELECT DATABASE(), COALESCE(SUM(CASE WHEN LOWER(table_name)=LOWER('$HISTORY_TABLE') THEN 1 ELSE 0 END),0), COALESCE(SUM(CASE WHEN LOWER(table_name)<>LOWER('$HISTORY_TABLE') AND table_type='BASE TABLE' THEN 1 ELSE 0 END),0) FROM information_schema.tables WHERE table_schema=DATABASE();" > "/harness/flywaycheck-<+matrix.dbInstance>.txt"
+              cat "/harness/flywaycheck-<+matrix.dbInstance>.txt"
+            envVariables:
+              MYSQL_PWD: <+pipeline.variables.dbPassword>
+              DB_HOST: <+pipeline.variables.dbHost>
+              DB_PORT: <+pipeline.variables.dbPort>
+              DB_USER: <+pipeline.variables.dbUser>
+              DB_NAME: <+matrix.dbInstance>
+              HISTORY_TABLE: <+pipeline.variables.flywayHistoryTable>
+      - step:
+          type: Run
+          name: SetFlywaySetupVariables
+          identifier: SetFlywaySetupVariables
+          spec:
+            connectorRef: <+pipeline.variables.dockerImageConnectorRef>
+            image: <+pipeline.variables.dockerImage>
+            shell: Sh
+            command: |-
+              set -eu
+              FILE="/harness/flywaycheck-<+matrix.dbInstance>.txt"
+              test -s "$FILE"
+              read DB_NAME HISTORY_COUNT USER_COUNT < "$FILE"
+              case "$HISTORY_COUNT" in ''|*[!0-9]*) exit 1;; esac
+              case "$USER_COUNT" in ''|*[!0-9]*) exit 1;; esac
+              FLYWAY_MANAGED=false
+              HAS_TABLES_TO_BASELINE=false
+              [ "$HISTORY_COUNT" -eq 0 ] || FLYWAY_MANAGED=true
+              [ "$USER_COUNT" -eq 0 ] || HAS_TABLES_TO_BASELINE=true
+              export FLYWAY_MANAGED HAS_TABLES_TO_BASELINE
+              export FLYWAY_HISTORY_TABLE_COUNT="$HISTORY_COUNT"
+              export USER_TABLE_COUNT="$USER_COUNT"
+              echo "managed=$FLYWAY_MANAGED user_tables=$USER_COUNT"
+            outputVariables:
+              - name: FLYWAY_MANAGED
+                type: String
+                value: FLYWAY_MANAGED
+              - name: HAS_TABLES_TO_BASELINE
+                type: String
+                value: HAS_TABLES_TO_BASELINE
+              - name: FLYWAY_HISTORY_TABLE_COUNT
+                type: String
+                value: FLYWAY_HISTORY_TABLE_COUNT
+              - name: USER_TABLE_COUNT
+                type: String
+                value: USER_TABLE_COUNT
+      - step:
+          type: Run
+          name: InspectFlywaySetupVars
+          identifier: InspectFlywaySetupVars
+          spec:
+            connectorRef: <+pipeline.variables.dockerImageConnectorRef>
+            image: <+pipeline.variables.dockerImage>
+            shell: Sh
+            command: |-
+              echo "Managed: <+execution.steps.stepgroup_flyway<+strategy.identifierPostFix>.steps.SetFlywaySetupVariables.output.outputVariables.FLYWAY_MANAGED>"
+              echo "User tables: <+execution.steps.stepgroup_flyway<+strategy.identifierPostFix>.steps.SetFlywaySetupVariables.output.outputVariables.USER_TABLE_COUNT>"
+      - step:
+          type: Run
+          name: CheckFlywayBaselineStatus
+          identifier: CheckFlywayBaselineStatus
+          spec:
+            connectorRef: <+pipeline.variables.dockerImageConnectorRef>
+            image: <+pipeline.variables.dockerImage>
+            shell: Sh
+            command: |-
+              echo "Onboarding assessment for <+matrix.dbInstance>"
+              echo "Flyway managed: <+execution.steps.stepgroup_flyway<+strategy.identifierPostFix>.steps.SetFlywaySetupVariables.output.outputVariables.FLYWAY_MANAGED>"
+              echo "Has tables: <+execution.steps.stepgroup_flyway<+strategy.identifierPostFix>.steps.SetFlywaySetupVariables.output.outputVariables.HAS_TABLES_TO_BASELINE>"
+      - step:
+          type: Run
+          name: PreviewFlywayBaseline
+          identifier: PreviewFlywayBaseline
+          spec:
+            connectorRef: <+pipeline.variables.dockerImageConnectorRef>
+            image: <+pipeline.variables.dockerImage>
+            shell: Sh
+            command: |-
+              echo "Will baseline <+matrix.dbInstance> using TOML configured on Harness DB Schema"
+              echo "Expected baseline version: <+pipeline.variables.baselineVersion>"
+          when:
+            stageStatus: Success
+            condition: <+execution.steps.stepgroup_flyway<+strategy.identifierPostFix>.steps.SetFlywaySetupVariables.output.outputVariables.FLYWAY_MANAGED> == "false" && <+execution.steps.stepgroup_flyway<+strategy.identifierPostFix>.steps.SetFlywaySetupVariables.output.outputVariables.HAS_TABLES_TO_BASELINE> == "true"
+      - step:
+          type: FlywayCommand
+          name: BaselineExistingDatabase
+          identifier: BaselineExistingDatabase
+          spec:
+            connectorRef: <+pipeline.variables.dockerImageConnectorRef>
+            dbSchema: <+pipeline.variables.dbSchema>
+            dbInstance: <+matrix.dbInstance>
+            command: baseline
+          timeout: 10m
+          when:
+            stageStatus: Success
+            condition: <+execution.steps.stepgroup_flyway<+strategy.identifierPostFix>.steps.SetFlywaySetupVariables.output.outputVariables.FLYWAY_MANAGED> == "false" && <+execution.steps.stepgroup_flyway<+strategy.identifierPostFix>.steps.SetFlywaySetupVariables.output.outputVariables.HAS_TABLES_TO_BASELINE> == "true"
