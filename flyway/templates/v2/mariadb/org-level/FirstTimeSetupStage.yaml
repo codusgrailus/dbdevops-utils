@@ -1,0 +1,127 @@
+template:
+  name: FirstTimeSetupStage
+  identifier: FirstTimeSetupStage
+  versionLabel: v1
+  type: Stage
+  orgIdentifier: senthilorg01
+  tags: {}
+  spec:
+    type: Custom
+    spec:
+      execution:
+        steps:
+          - stepGroup:
+              name: PrepareDatabases
+              identifier: PrepareDatabases
+              steps:
+                - step:
+                    type: FlywayCommand
+                    name: InspectFlywayState
+                    identifier: InspectFlywayState
+                    spec:
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
+                      dbSchema: <+stage.variables.dbSchema>
+                      dbInstance: <+matrix.dbInstance>
+                      command: info
+                      settings:
+                        outputType: json
+                        outputFile: /harness/<+matrix.dbInstance>_setup_info.json
+                    timeout: 10m
+                - step:
+                    type: Run
+                    name: EvaluateBaselineCandidate
+                    identifier: EvaluateBaselineCandidate
+                    spec:
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
+                      image: alpine:3.21
+                      shell: Sh
+                      envVariables:
+                        FLYWAY_INFO_FILE: /harness/<+matrix.dbInstance>_setup_info.json
+                      command: |-
+                        set -eu
+                        apk add --no-cache jq
+
+                        BASELINE_ASSESSMENT=$(jq -ers '
+                          if length != 1 then
+                            error("Expected one Flyway info JSON result")
+                          else
+                            .[0]
+                            | if type != "object" or .operation != "info" or has("error") then
+                                error("Expected a successful Flyway info result")
+                              elif .allSchemasEmpty == true then
+                                "empty"
+                              elif .allSchemasEmpty != false or (has("schemaVersion") | not)
+                                or (.migrations | type) != "array" then
+                                "inconclusive"
+                              elif .schemaVersion != null then
+                                "history-reported"
+                              elif all(.migrations[];
+                                .installedOnUTC == "" and
+                                (.state == "Pending" or .state == "Above Target"
+                                  or .state == "Ignored" or .state == "Available")) then
+                                "candidate"
+                              else
+                                "history-or-inconclusive"
+                              end
+                          end
+                        ' "$FLYWAY_INFO_FILE")
+
+                        export BASELINE_ASSESSMENT
+                        echo "Flyway baseline assessment: $BASELINE_ASSESSMENT"
+                        if [ "$BASELINE_ASSESSMENT" = candidate ]; then
+                          echo "Verify that the target has user tables and no Flyway history table before enabling baseline."
+                        fi
+                      outputVariables:
+                        - name: BASELINE_ASSESSMENT
+                          type: String
+                          value: BASELINE_ASSESSMENT
+                - step:
+                    type: FlywayCommand
+                    name: BaselineExistingDatabase
+                    identifier: BaselineExistingDatabase
+                    spec:
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
+                      dbSchema: <+stage.variables.dbSchema>
+                      dbInstance: <+matrix.dbInstance>
+                      command: baseline
+                    timeout: 10m
+                    when:
+                      stageStatus: Success
+                      condition: <+stage.variables.enableBaseline> == "true" && <+execution.steps.PrepareDatabases<+strategy.identifierPostFix>.steps.EvaluateBaselineCandidate.output.outputVariables.BASELINE_ASSESSMENT> == "candidate"
+              stepGroupInfra:
+                type: KubernetesDirect
+                spec:
+                  connectorRef: <+stage.variables.kubernetesConnectorRef>
+                  sharedPaths:
+                    - /harness
+              strategy:
+                matrix:
+                  maxConcurrency: <+stage.variables.maxMatrixConcurrency>
+                  dbInstance: <+stage.variables.databaseInstanceList.split(",")>
+                onFailure: RunAll
+    variables:
+      - name: dbSchema
+        type: String
+        required: true
+        value: <+input>
+      - name: databaseInstanceList
+        type: String
+        required: true
+        value: <+input>
+      - name: maxMatrixConcurrency
+        type: Number
+        required: true
+        value: <+input>
+      - name: kubernetesConnectorRef
+        type: String
+        required: true
+        value: <+input>
+      - name: dockerImageConnectorRef
+        type: String
+        required: true
+        value: <+input>
+      - name: enableBaseline
+        type: String
+        description: Enable only after verifying the target has user tables and no Flyway history table.
+        required: true
+        value: <+input>

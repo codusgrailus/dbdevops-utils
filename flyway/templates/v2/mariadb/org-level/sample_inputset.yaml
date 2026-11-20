@@ -1,0 +1,30 @@
+inputSet:
+  name: SampleFlywayInputs
+  tags: {}
+  identifier: SampleFlywayInputs
+  orgIdentifier: ExampleOrg
+  projectIdentifier: ExampleProject
+  pipeline:
+    identifier: SampleFlywayPipeline
+    variables:
+      - name: dbSchema
+        type: String
+        value: <nov18Schema>
+      - name: databaseInstanceList
+        type: String
+        value: <dbinst01,dbinst02>
+      - name: maxMatrixConcurrency
+        type: Number
+        value: 1
+      - name: kubernetesConnectorRef
+        type: String
+        value: org.ExampleKubernetesConnector
+      - name: dockerImageConnectorRef
+        type: String
+        value: account.ExampleDockerConnector
+      - name: enableBaseline
+        type: String
+        value: "true"
+      - name: enableManualApproval
+        type: String
+        value: "true"

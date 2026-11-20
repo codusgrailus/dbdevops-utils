@@ -1,0 +1,212 @@
+template:
+  name: PreviewAndApproveStage
+  identifier: PreviewAndApproveStage
+  versionLabel: v1
+  type: Stage
+  orgIdentifier: senthilorg01
+  tags: {}
+  spec:
+    type: Custom
+    spec:
+      execution:
+        steps:
+          - stepGroup:
+              name: PreviewMigrations
+              identifier: PreviewMigrations
+              steps:
+                - step:
+                    type: FlywayCommand
+                    name: PreviewFlywayMigrationsAsTable
+                    identifier: PreviewFlywayMigrationsAsTable
+                    spec:
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
+                      dbSchema: <+stage.variables.dbSchema>
+                      dbInstance: <+matrix.dbInstance>
+                      command: info
+                    timeout: 10m
+                - step:
+                    type: FlywayCommand
+                    name: PreviewFlywayMigrationsAsJson
+                    identifier: PreviewFlywayMigrationsAsJson
+                    spec:
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
+                      dbSchema: <+stage.variables.dbSchema>
+                      dbInstance: <+matrix.dbInstance>
+                      command: info
+                      settings:
+                        outputType: json
+                        outputFile: /harness/<+matrix.dbInstance>_info.json
+                    timeout: 10m
+                - step:
+                    type: Run
+                    name: DisplayMigrationFiles
+                    identifier: DisplayMigrationFiles
+                    spec:
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
+                      image: alpine:3.21
+                      shell: Sh
+                      command: |-
+                        set -eu
+
+                        apk add --no-cache jq
+                        jq --version
+
+                        DB_INSTANCE="<+matrix.dbInstance>"
+                        JSON="/harness/${DB_INSTANCE}_info.json"
+
+                        MIGRATION_ROOT="/harness/dbops/PreviewFlywayMigrationsAsJson"
+
+                        echo "========== Flyway Migration Files =========="
+                        echo "Database instance: $DB_INSTANCE"
+
+                        if [ ! -s "$JSON" ]; then
+                          echo "ERROR: Missing or empty Flyway JSON: $JSON"
+                          exit 1
+                        fi
+
+                        jq -e '.migrations | type == "array"' "$JSON" > /dev/null
+
+                        MIGRATION_LIST="$(mktemp)"
+                        trap 'rm -f "$MIGRATION_LIST"' EXIT
+
+                        echo "========== Migration Summary =========="
+
+                        jq -r '
+                          .migrations[]
+                          | [
+                              (.version // "-"),
+                              .description,
+                              .state,
+                              .filepath
+                            ]
+                          | @tsv
+                        ' "$JSON"
+
+                        echo "========== Pending SQL Migrations =========="
+
+                        jq -r '
+                          .migrations[]
+                          | select(
+                              .type == "SQL"
+                              and (.state == "Pending" or .state == "Outdated")
+                            )
+                          | .filepath
+                        ' "$JSON" > "$MIGRATION_LIST"
+
+                        if [ ! -s "$MIGRATION_LIST" ]; then
+                          echo "No pending SQL migrations found."
+                        else
+                          while IFS= read -r FILE; do
+                            echo ""
+                            echo "========================================"
+                            echo "FILE: $FILE"
+                            echo "========================================"
+
+                            case "$FILE" in
+                              "$MIGRATION_ROOT"/*)
+                                ;;
+                              *)
+                                echo "ERROR: File outside expected migration directory: $FILE"
+                                exit 1
+                                ;;
+                            esac
+
+                            if [ ! -f "$FILE" ]; then
+                              echo "ERROR: Migration file not found: $FILE"
+                              exit 1
+                            fi
+
+                            cat "$FILE"
+
+                            echo ""
+                            echo "========== End SQL File =========="
+                          done < "$MIGRATION_LIST"
+                        fi
+
+                        echo "========== Completed =========="
+                - step:
+                    type: Run
+                    name: DisplayFlywayInfoJson
+                    identifier: DisplayFlywayInfoJson
+                    spec:
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
+                      image: alpine:3.21
+                      shell: Sh
+                      command: |-
+                        set -eu
+
+                        FILE="/harness/<+matrix.dbInstance>_info.json"
+
+                        echo "========== Flyway JSON Diagnostics =========="
+                        echo "Database instance: <+matrix.dbInstance>"
+
+                        echo "Checking /harness directory:"
+                        ls -lah /harness
+
+                        echo "Searching for JSON files:"
+                        find /harness -type f -name '*.json' -print
+
+                        if [ ! -s "$FILE" ]; then
+                          echo "ERROR: Missing or empty Flyway JSON file: $FILE"
+                          exit 1
+                        fi
+
+                        echo "========== Flyway Info JSON =========="
+                        cat "$FILE"
+
+                        echo "========== End Flyway Info JSON =========="
+              stepGroupInfra:
+                type: KubernetesDirect
+                spec:
+                  connectorRef: <+stage.variables.kubernetesConnectorRef>
+                  sharedPaths:
+                    - /harness
+              strategy:
+                matrix:
+                  maxConcurrency: <+stage.variables.maxMatrixConcurrency>
+                  dbInstance: <+stage.variables.databaseInstanceList.split(",")>
+                onFailure: RunAll
+          - step:
+              type: HarnessApproval
+              name: ApproveFlywayMigrations
+              identifier: ApproveFlywayMigrations
+              spec:
+                approvalMessage: Please review the pending Flyway migrations and their SQL contents before approving database changes.
+                includePipelineExecutionHistory: true
+                isAutoRejectEnabled: false
+                approvers:
+                  userGroups:
+                    - account._account_all_users
+                  minimumCount: 1
+                  disallowPipelineExecutor: false
+                approverInputs: []
+              timeout: 1d
+              when:
+                stageStatus: Success
+                condition: <+stage.variables.enableManualApproval> == "true"
+    variables:
+      - name: dbSchema
+        type: String
+        required: true
+        value: <+input>
+      - name: databaseInstanceList
+        type: String
+        required: true
+        value: <+input>
+      - name: maxMatrixConcurrency
+        type: Number
+        required: true
+        value: <+input>
+      - name: kubernetesConnectorRef
+        type: String
+        required: true
+        value: <+input>
+      - name: dockerImageConnectorRef
+        type: String
+        required: true
+        value: <+input>
+      - name: enableManualApproval
+        type: String
+        description: Set to "true" to require manual approval or "false" to skip it.
+        required: true
+        value: <+input>
