@@ -77,6 +77,9 @@ pipeline:
               - name: k8sConnectorRef
                 type: String
                 value: <+pipeline.variables.kubernetesConnectorRef>
+              - name: dockerImageConnectorRef
+                type: String
+                value: <+pipeline.variables.dockerImageConnectorRef>
               - name: databaseInstanceList
                 type: String
                 value: <+pipeline.variables.databaseInstanceList>

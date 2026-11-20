@@ -2,6 +2,7 @@
 """Generate Harness stage, pipeline, and input-set YAML for a target organization and project."""
 
 import argparse
+import json
 from pathlib import Path
 import re
 import sys
@@ -58,6 +59,11 @@ def main() -> int:
         default=source_dir / ".generated_templates",
         help="output directory (default: .generated_templates beside the source YAML)",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="print a JSON map of filenames to rendered YAML without writing files",
+    )
     for argument in sys.argv[1:]:
         option, equals, _ = argument.partition("=")
         if equals and option in ("-org_id", "-proj_id", "-inputset_id", "-out_dir"):
@@ -70,10 +76,10 @@ def main() -> int:
         if not sources:
             raise ValueError(f"No source YAML files found in {source_dir}")
         outputs = {
-            args.out_dir / source.name: render_yaml(source, args.org_id, args.proj_id)
+            source.name: render_yaml(source, args.org_id, args.proj_id)
             for source in sources
         }
-        sample_inputset = args.out_dir / "sample_inputset.yaml"
+        sample_inputset = "sample_inputset.yaml"
         if args.inputset_id is not None:
             if sample_inputset not in outputs:
                 raise ValueError("-inputset_id requires sample_inputset.yaml")
@@ -86,7 +92,7 @@ def main() -> int:
             if count != 1:
                 raise ValueError("Expected one input-set identifier in sample_inputset.yaml")
         if sample_inputset in outputs:
-            sample_pipeline = args.out_dir / "sample_pipeline_using_templates.yaml"
+            sample_pipeline = "sample_pipeline_using_templates.yaml"
             pipeline_id = re.search(
                 r"^  identifier:[ \t]*([A-Za-z_][A-Za-z0-9_$]{0,127})[ \t]*$",
                 outputs.get(sample_pipeline, ""),
@@ -103,12 +109,17 @@ def main() -> int:
             if count != 1:
                 raise ValueError("Expected one pipeline reference in sample_inputset.yaml")
 
-        for output in outputs:
+        if args.json:
+            print(json.dumps(outputs))
+            return 0
+
+        files = {args.out_dir / name: content for name, content in outputs.items()}
+        for output in files:
             if output.exists() or output.is_symlink():
                 raise FileExistsError(f"Output already exists: {output}")
 
         args.out_dir.mkdir(parents=True, exist_ok=True)
-        for output, content in outputs.items():
+        for output, content in files.items():
             # Exclusive creation also protects against collisions after the preflight check.
             with output.open("x", encoding="utf-8") as stream:
                 created.append(output)

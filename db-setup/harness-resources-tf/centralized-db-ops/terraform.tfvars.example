@@ -1,0 +1,54 @@
+org_id     = "ExampleOrg"
+project_id = "ExampleProject"
+
+template_generator_path = "../../../flyway/templates/v2/mariadb/org-level/gen_templates.py"
+
+template_yaml_files_list = [
+  "ApplyOrRollbackStage.yaml",
+  "FirstTimeSetupStage.yaml",
+  "PreviewAndApproveStage.yaml",
+]
+pipeline_yaml_file = "sample_pipeline_using_templates.yaml"
+
+db_schema = {
+  identifier        = "ExampleFlywaySchema"
+  name              = "Example Flyway Schema"
+  git_connector_ref = "org.ExampleGitConnector"
+  repository        = "dbdevops-utils"
+  migrations_path   = "flyway/simple-matrix-looped"
+  toml_path         = "flyway/simple-matrix-looped/flyway.toml"
+}
+
+# Replace the placeholder in your local terraform.tfvars. To inject the map
+# through TF_VAR_jdbc_passwords, omit this block from your local file.
+jdbc_passwords = {
+  devInstance01Password = "REPLACE_WITH_MARIADB_PASSWORD"
+}
+
+jdbc_connectors = {
+  devInstance01Connector = {
+    url                = "jdbc:mysql://dev-db.example.com:3306/example_db"
+    username           = "example_flyway_user"
+    password_ref       = "devInstance01Password"
+    delegate_selectors = ["example-db-delegate"]
+  }
+}
+
+db_instances = {
+  devInstance01 = {
+    jdbc_connector_ref = "devInstance01Connector"
+    branch             = "dev2_nov20_01"
+    tags               = ["env:dev"]
+  }
+}
+
+pipeline_input_set = {
+  identifier                 = "ExampleFlywayInputs"
+  db_schema                  = "ExampleFlywaySchema"
+  database_instance_ids      = ["devInstance01"]
+  max_matrix_concurrency     = 1
+  kubernetes_connector_ref   = "org.ExampleKubernetesConnector"
+  docker_image_connector_ref = "org.ExampleDockerRegistryConnector"
+  enable_baseline            = true
+  enable_manual_approval     = true
+}

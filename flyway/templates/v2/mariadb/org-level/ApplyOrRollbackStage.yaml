@@ -19,7 +19,7 @@ template:
                     name: ApplySchema
                     identifier: ApplySchema
                     spec:
-                      connectorRef: account.harnessImage
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
                       migrationType: Flyway
                       dbSchema: <+stage.variables.dbSchema>
                       dbInstance: <+matrix.dbInstance>
@@ -29,7 +29,7 @@ template:
                     name: PrintApplyStatus
                     identifier: PrintApplyStatus
                     spec:
-                      connectorRef: account.harnessImage
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
                       image: alpine:latest
                       shell: Sh
                       command: |-
@@ -44,7 +44,7 @@ template:
                     name: RollbackSchema
                     identifier: RollbackSchema
                     spec:
-                      connectorRef: account.harnessImage
+                      connectorRef: <+stage.variables.dockerImageConnectorRef>
                       migrationType: Flyway
                       dbSchema: <+stage.variables.dbSchema>
                       dbInstance: <+matrix.dbInstance>
@@ -66,6 +66,11 @@ template:
       - name: dbSchema
         type: String
         description: Id for dbSchema
+        required: true
+        value: <+input>
+      - name: dockerImageConnectorRef
+        type: String
+        description: Docker registry connector
         required: true
         value: <+input>
       - name: k8sConnectorRef
