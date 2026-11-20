@@ -1,0 +1,36 @@
+pipeline:
+  projectIdentifier: dbdproj01
+  orgIdentifier: senthilorg01
+  identifier: flyway_preview_and_approval_using_stage_template_02
+  name: flyway_preview_and_approval_using_stage_template_02
+  tags: {}
+  stages:
+    - stage:
+        name: s2
+        identifier: s2
+        tags: {}
+        template:
+          templateRef: flyway_preview_approval_stage_template
+          versionLabel: v1
+  variables:
+    - name: dbSchema
+      type: String
+      value: nov13simplematrix
+    - name: databaseInstanceList
+      type: String
+      value: h1
+    - name: maxMatrixConcurrency
+      type: Number
+      value: 1
+    - name: kubernetesConnectorRef
+      type: String
+      value: org.senthilk8sclusternov12v1114amconn
+    - name: dockerImageConnectorRef
+      type: String
+      value: account.harnessImage
+    - name: dockerImage
+      type: String
+      value: alpine:3.12
+    - name: enableManualApproval
+      type: String
+      value: "true"
