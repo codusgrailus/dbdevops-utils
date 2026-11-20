@@ -30,27 +30,9 @@ pipeline:
               - name: dockerImageConnectorRef
                 type: String
                 value: <+input>
-              - name: dockerImage
+              - name: enableBaseline
                 type: String
-                value: <+input>
-              - name: dbHost
-                type: String
-                value: <+input>
-              - name: dbPort
-                type: String
-                value: <+input>
-              - name: dbUser
-                type: String
-                value: <+input>
-              - name: dbPassword
-                type: Secret
-                value: <+input>
-              - name: baselineVersion
-                type: String
-                value: <+input>
-              - name: flywayHistoryTable
-                type: String
-                value: <+input>
+                value: <+input>.default(false)
     - stage:
         name: PreviewAndApproveStageTemplate
         identifier: PreviewAndApproveStageTemplate
