@@ -1,0 +1,85 @@
+template:
+  name: ApplyOrRollbackStage
+  identifier: ApplyOrRollbackStage
+  versionLabel: v1
+  type: Stage
+  orgIdentifier: default
+  tags: {}
+  spec:
+    type: Custom
+    spec:
+      execution:
+        steps:
+          - stepGroup:
+              name: ApplyMigrations
+              identifier: ApplyMigrations
+              steps:
+                - step:
+                    type: DBSchemaApply
+                    name: ApplySchema
+                    identifier: ApplySchema
+                    spec:
+                      connectorRef: account.harnessImage
+                      migrationType: Flyway
+                      dbSchema: <+stage.variables.dbSchema>
+                      dbInstance: <+matrix.dbInstance>
+                    timeout: 10m
+                - step:
+                    type: Run
+                    name: PrintApplyStatus
+                    identifier: PrintApplyStatus
+                    spec:
+                      connectorRef: account.harnessImage
+                      image: alpine:latest
+                      shell: Sh
+                      command: |-
+                        echo "DB instance: <+matrix.dbInstance>"
+                        echo "Matrix postfix: <+strategy.identifierPostFix>"
+                        echo "Apply status: <+execution.steps.ApplyMigrations<+strategy.identifierPostFix>.steps.ApplySchema.status>"
+                        echo "Pre-start tag: <+execution.steps.ApplyMigrations<+strategy.identifierPostFix>.steps.ApplySchema.output.preStartTag>"
+                    when:
+                      stageStatus: All
+                - step:
+                    type: DBSchemaRollback
+                    name: RollbackSchema
+                    identifier: RollbackSchema
+                    spec:
+                      connectorRef: account.harnessImage
+                      migrationType: Flyway
+                      dbSchema: <+stage.variables.dbSchema>
+                      dbInstance: <+matrix.dbInstance>
+                      tag: <+execution.steps.ApplyMigrations<+strategy.identifierPostFix>.steps.ApplySchema.output.preStartTag>
+                    timeout: 10m
+                    when:
+                      stageStatus: All
+                      condition: <+execution.steps.ApplyMigrations<+strategy.identifierPostFix>.steps.ApplySchema.status> == "FAILED"
+              stepGroupInfra:
+                type: KubernetesDirect
+                spec:
+                  connectorRef: <+stage.variables.k8sConnectorRef>
+              strategy:
+                matrix:
+                  maxConcurrency: <+stage.variables.maxMatrixConcurrency>
+                  dbInstance: <+stage.variables.databaseInstanceList.split(",")>
+                onFailure: RunAll
+    variables:
+      - name: dbSchema
+        type: String
+        description: Id for dbSchema
+        required: true
+        value: <+input>
+      - name: k8sConnectorRef
+        type: String
+        description: Kubernetes connector
+        required: true
+        value: <+input>
+      - name: databaseInstanceList
+        type: String
+        description: Comma-separated DB instance identifiers
+        required: true
+        value: <+input>
+      - name: maxMatrixConcurrency
+        type: Number
+        description: Maximum concurrent matrix iterations
+        required: true
+        value: 2

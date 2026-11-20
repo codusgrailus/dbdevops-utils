@@ -1,0 +1,100 @@
+pipeline:
+  name: TemplateTestNov20_v01
+  identifier: TemplateTestNov20_v01
+  projectIdentifier: dbdproj01
+  orgIdentifier: senthilorg01
+  tags: {}
+  stages:
+    - stage:
+        name: PrepareDatabasesStage
+        identifier: PrepareDatabasesStage
+        tags: {}
+        template:
+          templateRef: org.FirstTimeSetupStage
+          versionLabel: v1
+          templateInputs:
+            type: Custom
+            variables:
+              - name: dbSchema
+                type: String
+                value: <+input>
+              - name: databaseInstanceList
+                type: String
+                value: <+input>
+              - name: maxMatrixConcurrency
+                type: Number
+                value: <+input>
+              - name: kubernetesConnectorRef
+                type: String
+                value: <+input>
+              - name: dockerImageConnectorRef
+                type: String
+                value: <+input>
+              - name: dockerImage
+                type: String
+                value: <+input>
+              - name: dbHost
+                type: String
+                value: <+input>
+              - name: dbPort
+                type: String
+                value: <+input>
+              - name: dbUser
+                type: String
+                value: <+input>
+              - name: dbPassword
+                type: Secret
+                value: <+input>
+              - name: baselineVersion
+                type: String
+                value: <+input>
+              - name: flywayHistoryTable
+                type: String
+                value: <+input>
+    - stage:
+        name: PreviewAndApproveStageTemplate
+        identifier: PreviewAndApproveStageTemplate
+        tags: {}
+        template:
+          templateRef: org.PreviewAndApproveStage
+          versionLabel: v1
+          templateInputs:
+            type: Custom
+            variables:
+              - name: dbSchema
+                type: String
+                value: <+input>
+              - name: databaseInstanceList
+                type: String
+                value: <+input>
+              - name: maxMatrixConcurrency
+                type: Number
+                value: <+input>
+              - name: kubernetesConnectorRef
+                type: String
+                value: <+input>
+              - name: dockerImageConnectorRef
+                type: String
+                value: <+input>
+              - name: enableManualApproval
+                type: String
+                value: <+input>
+    - stage:
+        name: ApplyOrRollbackStage
+        identifier: ApplyOrRollbackStage
+        tags: {}
+        template:
+          templateRef: org.ApplyOrRollbackStage
+          versionLabel: v1
+          templateInputs:
+            type: Custom
+            variables:
+              - name: dbSchema
+                type: String
+                value: <+input>
+              - name: k8sConnectorRef
+                type: String
+                value: <+input>
+              - name: databaseInstanceList
+                type: String
+                value: <+input>
