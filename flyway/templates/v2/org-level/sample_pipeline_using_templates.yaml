@@ -17,25 +17,25 @@ pipeline:
             variables:
               - name: dbSchema
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.dbSchema>
               - name: databaseInstanceList
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.databaseInstanceList>
               - name: maxMatrixConcurrency
                 type: Number
-                value: <+input>
+                value: <+pipeline.variables.maxMatrixConcurrency>
               - name: kubernetesConnectorRef
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.kubernetesConnectorRef>
               - name: dockerImageConnectorRef
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.dockerImageConnectorRef>
               - name: enableBaseline
                 type: String
-                value: <+input>.default(false)
+                value: <+pipeline.variables.enableBaseline>
     - stage:
-        name: PreviewAndApproveStageTemplate
-        identifier: PreviewAndApproveStageTemplate
+        name: PreviewAndApproveStage
+        identifier: PreviewAndApproveStage
         tags: {}
         template:
           templateRef: org.PreviewAndApproveStage
@@ -45,22 +45,22 @@ pipeline:
             variables:
               - name: dbSchema
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.dbSchema>
               - name: databaseInstanceList
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.databaseInstanceList>
               - name: maxMatrixConcurrency
                 type: Number
-                value: <+input>
+                value: <+pipeline.variables.maxMatrixConcurrency>
               - name: kubernetesConnectorRef
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.kubernetesConnectorRef>
               - name: dockerImageConnectorRef
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.dockerImageConnectorRef>
               - name: enableManualApproval
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.enableManualApproval>
     - stage:
         name: ApplyOrRollbackStage
         identifier: ApplyOrRollbackStage
@@ -73,10 +73,46 @@ pipeline:
             variables:
               - name: dbSchema
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.dbSchema>
               - name: k8sConnectorRef
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.kubernetesConnectorRef>
               - name: databaseInstanceList
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.databaseInstanceList>
+  variables:
+    - name: dbSchema
+      type: String
+      description: Flyway DB Schema
+      required: true
+      value: <+input>
+    - name: databaseInstanceList
+      type: String
+      description: Comma-separated database instances
+      required: true
+      value: <+input>
+    - name: maxMatrixConcurrency
+      type: Number
+      description: Maximum parallel database operations
+      required: true
+      value: <+input>
+    - name: kubernetesConnectorRef
+      type: String
+      description: Kubernetes connector
+      required: true
+      value: <+input>
+    - name: dockerImageConnectorRef
+      type: String
+      description: Docker image connector
+      required: true
+      value: <+input>
+    - name: enableBaseline
+      type: String
+      description: Enable baseline only for verified unmanaged databases
+      required: true
+      value: <+input>.default(false)
+    - name: enableManualApproval
+      type: String
+      description: Require manual approval before apply or rollback
+      required: true
+      value: <+input>.default(true)
